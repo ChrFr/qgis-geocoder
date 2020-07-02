@@ -1,7 +1,7 @@
 [general]
 name=BKG Geocoder
 qgisMinimumVersion=3.0
-description=Geokodierung mit dem BKG Geokodierungsdienst
+description=Geocode layers with addresses in Germany using the geocoding service of the "Bundesamt für Kartographie und Geodäsie" (BKG).
 version=1.0
 author=Bundesamt für Kartographie und Geodäsie
 email=franke@ggr-planung.de
@@ -16,7 +16,7 @@ repository=https://github.com/ChrFr/qgis-geocoder
 # Tags are comma separated with spaces allowed
 tags=bkg,geocode,geokodierung,geocoder,geokoder
 
-homepage=https://www.bkg.bund.de/
+homepage=https://github.com/ChrFr/qgis-geocoder
 category=Plugins
 icon=icon.png
 # experimental flag

@@ -30,7 +30,6 @@ import webbrowser
 import re
 
 from typing import List
-from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QTimer
 from qgis import utils
 from qgis.core import (QgsPointXY, QgsGeometry, QgsMapLayerProxyModel,
@@ -40,18 +39,18 @@ from qgis.core import (QgsPointXY, QgsGeometry, QgsMapLayerProxyModel,
                        QgsTextBufferSettings, QgsVectorLayerSimpleLabeling,
                        QgsCoordinateReferenceSystem)
 from qgis.PyQt.QtWidgets import (QComboBox, QCheckBox, QMessageBox,
-                                 QDockWidget, QWidget, QFileDialog)
+                                 QDockWidget, QFileDialog)
 from qgis.PyQt.QtGui import QTextCursor
 
-from .dialogs import ReverseResultsDialog, InspectResultsDialog, Dialog
+from .dialogs import ReverseResultsDialog, InspectResultsDialog, AboutDialog
 from .map_tools import FeaturePicker, FeatureDragger
 from .utils import (clone_layer, TopPlusOpen, get_geometries, LayerWrapper,
                     clear_layout, ResField)
 from bkggeocoder.geocoder.bkg_geocoder import (BKGGeocoder, RS_PRESETS,
                                                BKG_RESULT_FIELDS)
 from bkggeocoder.geocoder.geocoder import Geocoding, FieldMap, ReverseGeocoding
-from bkggeocoder.config import (Config, STYLE_PATH, UI_PATH, HELP_URL,
-                                VERSION, DEFAULT_STYLE)
+from bkggeocoder.config import Config, STYLE_PATH, HELP_URL, DEFAULT_STYLE
+from bkggeocoder.interface.ui.main_dockwidget import Ui_MainDockWidget
 import datetime
 
 config = Config()
@@ -66,7 +65,7 @@ def field_comp(layer: QgsVectorLayer, field_name: str) -> str:
     return field_name
 
 
-class MainWidget(QDockWidget):
+class MainWidget(QDockWidget, Ui_MainDockWidget):
     '''
     the dockable main widget
 
@@ -75,11 +74,10 @@ class MainWidget(QDockWidget):
     closingWidget : pyqtSignal
         emitted when widget is closed in any way
     '''
-    ui_file = 'main_dockwidget.ui'
     closingWidget = pyqtSignal()
 
-    def __init__(self, parent: QWidget = None):
-        super(MainWidget, self).__init__(parent)
+    def __init__(self):
+        super(MainWidget, self).__init__()
         # currently selected output layer
         self.output = None
         # stores which layers are marked as output layers
@@ -117,10 +115,6 @@ class MainWidget(QDockWidget):
 
         self.iface = utils.iface
         self.canvas = self.iface.mapCanvas()
-        ui_file = self.ui_file if os.path.exists(self.ui_file) \
-            else os.path.join(UI_PATH, self.ui_file)
-        uic.loadUi(ui_file, self)
-        self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
         self.setupUi()
         self.setup_config()
 
@@ -142,6 +136,8 @@ class MainWidget(QDockWidget):
         set up the ui, fill it with dynamic content and connect all interactive
         ui elements with actions
         '''
+        super().setupUi(self)
+        self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
         # connect buttons
         self.import_csv_button.clicked.connect(self.import_csv)
         self.export_csv_button.clicked.connect(self.export_csv)
@@ -454,11 +450,10 @@ class MainWidget(QDockWidget):
         self.inspect_dialog = InspectResultsDialog(
             feature, results, self.canvas,
             preselect=feature.attribute(self.result_fields['i'][0].field_name),
-            parent=self, crs=layer.crs().authid(),
-            review_fields=review_fields, label=label,
+            crs=layer.crs().authid(), review_fields=review_fields, label=label,
             text_field=self.result_fields['text'][0].field_name
         )
-        accepted = self.inspect_dialog.show()
+        accepted = self.inspect_dialog.exec_()
         # set picked result when user accepted
         if accepted:
             self.set_bkg_result(feature, self.inspect_dialog.result,
@@ -543,10 +538,10 @@ class MainWidget(QDockWidget):
                          if self.label_field_name else '')
                 self.reverse_dialog = ReverseResultsDialog(
                     feature, results, self.canvas, review_fields=review_fields,
-                    parent=self, crs=output_crs.authid(), label=label,
+                    crs=output_crs.authid(), label=label,
                     text_field=self.result_fields['text'][0].field_name
                 )
-                accepted = self.reverse_dialog.show()
+                accepted = self.reverse_dialog.exec_()
                 if accepted:
                     result = self.reverse_dialog.result
                     # apply the geometry of the selected result
@@ -1152,6 +1147,5 @@ class MainWidget(QDockWidget):
         '''
         show information about plugin in dialog
         '''
-        about = Dialog(ui_file='about.ui', parent=self)
-        about.version_label.setText(str(VERSION))
-        about.show()
+        about = AboutDialog()
+        about.exec_()

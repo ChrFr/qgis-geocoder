@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DockWidget</class>
- <widget class="QDockWidget" name="DockWidget">
+ <class>MainDockWidget</class>
+ <widget class="QDockWidget" name="MainDockWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -325,7 +325,7 @@ padding: 2px;
                 <x>0</x>
                 <y>0</y>
                 <width>326</width>
-                <height>373</height>
+                <height>381</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_6">

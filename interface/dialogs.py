@@ -25,10 +25,8 @@ __copyright__ = 'Copyright 2020, Bundesamt für Kartographie und Geodäsie'
 
 from qgis.PyQt.QtWidgets import (QDialog, QLabel, QRadioButton, QGridLayout,
                                  QFrame)
-from qgis.PyQt.Qt import QWidget
 from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt.QtCore import Qt, QVariant
-from qgis.PyQt import uic
 from qgis.core import (QgsPointXY, QgsGeometry, QgsVectorLayer, QgsFeature,
                        QgsField, QgsProject, QgsCategorizedSymbolRenderer,
                        QgsMarkerSymbol, QgsRasterMarkerSymbolLayer,
@@ -39,58 +37,14 @@ import os
 
 from typing import List
 from bkggeocoder.interface.utils import clear_layout, LayerWrapper
-from bkggeocoder.config import UI_PATH, Config, ICON_PATH
+from bkggeocoder.config import Config, ICON_PATH, VERSION
+from bkggeocoder.interface.ui.featurepicker import Ui_PickerDialog
+from bkggeocoder.interface.ui.about import Ui_AboutDialog
 
 config = Config()
 
 
-class Dialog(QDialog):
-    '''
-    Dialog
-    '''
-    def __init__(self, ui_file: str = None, modal: bool = True,
-                 parent: QWidget = None, title: str = None):
-        '''
-        Parameters
-        ----------
-        ui_file : str, optional
-            path to QT-Designer xml file to load UI of dialog from,
-            if only filename is given, the file is looked for in the standard
-            folder (UI_PATH), defaults to not using ui file
-        modal : bool, optional
-            set dialog to modal if True, not modal if False, defaults to modal
-        parent: QWidget, optional
-            parent widget, defaults to None
-        title: str, optional
-            replaces title of dialog if given, defaults to preset title
-        '''
-
-        super().__init__(parent=parent)
-        if ui_file:
-            # look for file ui folder if not found
-            ui_file = ui_file if os.path.exists(ui_file) \
-                else os.path.join(UI_PATH, ui_file)
-            uic.loadUi(ui_file, self)
-        if title:
-            self.setWindowTitle(title)
-
-        self.setModal(modal)
-        self.setupUi()
-
-    def setupUi(self):
-        '''
-        override for additional functionality
-        '''
-        pass
-
-    def show(self):
-        '''
-        override, show the dialog
-        '''
-        return self.exec_()
-
-
-class InspectResultsDialog(Dialog):
+class InspectResultsDialog(QDialog, Ui_PickerDialog):
     '''
     dialog showing a feature with its attributes used for geocoding  and
     a list of pickable results of geocoding this feature
@@ -103,14 +57,12 @@ class InspectResultsDialog(Dialog):
     result : dict
         the currently picked result
     '''
-    ui_file = 'featurepicker.ui'
     marker_img = 'marker_{}.png'
 
     def __init__(self, feature: QgsFeature, results: List[dict],
                  canvas: QgsMapCanvas, review_fields: List[str] = [],
                  preselect: int = -1, crs: str = 'EPSG:4326', label: str = '',
-                 parent: QWidget = None, show_score: bool = True,
-                 text_field: str = 'text'):
+                 show_score: bool = True, text_field: str = 'text'):
         '''
         Parameters
         ----------
@@ -135,13 +87,13 @@ class InspectResultsDialog(Dialog):
         label : str, optional
             title shown at the top of the dialog as a label,
             defaults to no title
-        parent : QWidget, optional
-            parent widget, defaults to None
         show_score : bool, optional
             show the score of the results in the ui, defaults to showing the
             scores
         '''
-        super().__init__(self.ui_file, modal=False, parent=parent)
+        super().__init__()
+        self.setModal(False)
+        self.setupUi(self)
         self.canvas = canvas
         self.results = results
         self.feature = feature
@@ -331,7 +283,7 @@ class InspectResultsDialog(Dialog):
 
 class ReverseResultsDialog(InspectResultsDialog):
     '''
-    dialog showing a feature with its attributes used for geocoding  and
+    dialog showing a feature with its attributes used for geocoding and
     a list of pickable results of geocoding this feature
     dialog can be accepted (replace text and geometry with result), cancelled
     or just the geometry can be taken as a third option
@@ -346,8 +298,7 @@ class ReverseResultsDialog(InspectResultsDialog):
     def __init__(self, feature: QgsFeature, results: List[dict],
                  canvas: QgsMapCanvas, review_fields: List[str] = [],
                  crs: str = 'EPSG:4326', label: str = '',
-                 parent: QWidget = None, show_score: bool = False,
-                 text_field: str = 'text'):
+                 show_score: bool = False, text_field: str = 'text'):
         '''
         Parameters
         ----------
@@ -368,8 +319,6 @@ class ReverseResultsDialog(InspectResultsDialog):
         label : str, optional
             title shown at the top of the dialog as a label,
             defaults to no title
-        parent : QWidget, optional
-            parent widget, defaults to None
         show_score : bool, optional
             show the score of the results in the ui, defaults to not showing the
             scores
@@ -378,8 +327,8 @@ class ReverseResultsDialog(InspectResultsDialog):
             address, defaults to "text"
         '''
         super().__init__(feature, results, canvas, crs=crs, label=label,
-                         review_fields=review_fields, parent=parent,
-                         show_score=show_score, text_field=text_field)
+                         review_fields=review_fields, show_score=show_score,
+                         text_field=text_field)
         # ui file was designed for the inspection of geocoding results,
         # replace labels to match reverse geocoding
         self.results_label.setText('Nächstgelegene Adressen')
@@ -435,3 +384,13 @@ class ReverseResultsDialog(InspectResultsDialog):
         self._setup_preview_layer()
         self._add_results()
 
+
+class AboutDialog(QDialog, Ui_AboutDialog):
+    '''
+    dialog showing version of the plugin and contact information
+    '''
+    def __init__(self):
+        super().__init__()
+        self.setModal(True)
+        self.setupUi(self)
+        self.version_label.setText(str(VERSION))

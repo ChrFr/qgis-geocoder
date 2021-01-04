@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>PickerDialog</class>
+ <widget class="QDialog" name="PickerDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -76,7 +76,7 @@
            <x>0</x>
            <y>0</y>
            <width>272</width>
-           <height>201</height>
+           <height>206</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
